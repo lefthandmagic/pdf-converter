@@ -1,0 +1,42 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>File to PDF Converter</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .upload-area {
+            border: 2px dashed #ccc;
+            padding: 20px;
+            text-align: center;
+            margin: 20px 0;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+    <h1>File to PDF Converter</h1>
+    <p>Supported files: .txt, .jpg, .jpeg, .png</p>
+    <form method="POST" enctype="multipart/form-data">
+        <div class="upload-area">
+            <input type="file" name="file" accept=".txt,.jpg,.jpeg,.png"><br><br>
+            <button type="submit">Convert to PDF</button>
+        </div>
+    </form>
+</body>
+</html>
+    
