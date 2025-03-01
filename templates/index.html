@@ -2,41 +2,117 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>File to PDF Converter</title>
+    <title>Digital Signature Tool</title>
     <style>
         body {
             font-family: Arial, sans-serif;
             max-width: 800px;
             margin: 0 auto;
             padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        .description {
+            color: #666;
+            margin-bottom: 30px;
+            line-height: 1.6;
         }
         .upload-area {
-            border: 2px dashed #ccc;
-            padding: 20px;
+            border: 2px dashed #4CAF50;
+            border-radius: 8px;
+            padding: 30px;
             text-align: center;
+            margin: 20px 0;
+            background-color: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .supported-files {
+            background-color: #e8f5e9;
+            padding: 15px;
+            border-radius: 6px;
             margin: 20px 0;
         }
         button {
-            padding: 10px 20px;
+            padding: 12px 24px;
             background-color: #4CAF50;
             color: white;
             border: none;
+            border-radius: 4px;
             cursor: pointer;
+            font-size: 16px;
+            margin: 10px;
+            transition: background-color 0.3s;
         }
         button:hover {
             background-color: #45a049;
         }
+        input[type="file"] {
+            margin: 20px 0;
+        }
+        .features {
+            margin: 30px 0;
+            padding: 20px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .features ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        .features li {
+            margin: 10px 0;
+            padding-left: 24px;
+            position: relative;
+        }
+        .features li:before {
+            content: "✓";
+            color: #4CAF50;
+            position: absolute;
+            left: 0;
+        }
     </style>
 </head>
 <body>
-    <h1>File to PDF Converter</h1>
-    <p>Supported files: .txt, .jpg, .jpeg, .png</p>
+    <div class="header">
+        <h1>Digital Signature Tool</h1>
+        <p class="description">
+            Add your signature to documents easily. Draw, position, and save your signature on any document.
+            Perfect for contracts, forms, and other documents requiring your signature.
+        </p>
+    </div>
+
+    <div class="features">
+        <h2>Features:</h2>
+        <ul>
+            <li>Draw your signature using our digital pad</li>
+            <li>Drag and position your signature anywhere on the document</li>
+            <li>Download your signed document as PDF</li>
+            <li>Support for multiple file formats</li>
+            <li>Easy to use interface</li>
+        </ul>
+    </div>
+
+    <div class="supported-files">
+        <h3>Supported File Types:</h3>
+        <p>Upload any of these files to add your signature: PDF, Images (.jpg, .jpeg, .png), or Text files (.txt)</p>
+    </div>
+
     <form method="POST" enctype="multipart/form-data">
         <div class="upload-area">
-            <input type="file" name="file" accept=".txt,.jpg,.jpeg,.png"><br><br>
-            <button type="submit">Convert to PDF</button>
+            <h3>Upload Your Document</h3>
+            <input type="file" name="file" accept=".txt,.jpg,.jpeg,.png,.pdf">
+            <br>
+            <button type="submit">Upload and Add Signature</button>
         </div>
     </form>
 </body>
 </html>
-    
+        
