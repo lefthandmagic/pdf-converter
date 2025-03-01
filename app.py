@@ -4,9 +4,14 @@ import os
 from werkzeug.utils import secure_filename
 from PIL import Image
 import io
+import tempfile
 
 def create_app():
     app = Flask(__name__)
+    
+    # Create a temporary directory for uploads
+    temp_dir = tempfile.mkdtemp()
+    app.config['UPLOAD_FOLDER'] = temp_dir
     
     class PDF(FPDF):
         def header(self):
@@ -27,20 +32,19 @@ def create_app():
                 filename = secure_filename(file.filename)
                 file_ext = os.path.splitext(filename)[1].lower()
                 
-                # Create pdfs directory if it doesn't exist
-                if not os.path.exists('pdfs'):
-                    os.makedirs('pdfs')
+                # Use temporary directory
+                if not os.path.exists(app.config['UPLOAD_FOLDER']):
+                    os.makedirs(app.config['UPLOAD_FOLDER'])
                 
                 if file_ext == '.pdf':
-                    # Save PDF directly
-                    output_path = os.path.join('pdfs', filename)
+                    output_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
                     file.save(output_path)
                 elif file_ext in ['.jpg', '.jpeg', '.png']:
                     # Handle image files
                     image = Image.open(file)
                     if image.mode == 'RGBA':
                         image = image.convert('RGB')
-                    output_path = os.path.join('pdfs', os.path.splitext(filename)[0] + '.pdf')
+                    output_path = os.path.join(app.config['UPLOAD_FOLDER'], os.path.splitext(filename)[0] + '.pdf')
                     image.save(output_path, 'PDF')
                 else:
                     return 'Unsupported file type', 400
@@ -58,13 +62,13 @@ def create_app():
     @app.route('/pdfs/<filename>')
     def serve_pdf(filename):
         try:
-            return send_file(os.path.join('pdfs', filename), mimetype='application/pdf')
+            return send_file(os.path.join(app.config['UPLOAD_FOLDER'], filename), mimetype='application/pdf')
         except Exception as e:
             print(f"Error serving PDF: {e}")
             return str(e), 404
 
     # Create necessary directories
-    for directory in ['templates', 'static', 'pdfs']:
+    for directory in ['templates', 'static', app.config['UPLOAD_FOLDER']]:
         if not os.path.exists(directory):
             os.makedirs(directory)
 
