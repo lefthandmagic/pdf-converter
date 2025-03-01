@@ -1,6 +1,9 @@
-from flask import Flask, render_template, request, send_file
+from flask import Flask, render_template, request, send_file, redirect, url_for
 from fpdf import FPDF
 import os
+from werkzeug.utils import secure_filename
+from PIL import Image
+import io
 
 def create_app():
     app = Flask(__name__)
@@ -19,46 +22,45 @@ def create_app():
             file = request.files['file']
             if file.filename == '':
                 return 'No file selected', 400
-
-            # Create pdfs directory if it doesn't exist
-            if not os.path.exists('pdfs'):
-                os.makedirs('pdfs')
-
-            # Get file extension
-            ext = os.path.splitext(file.filename)[1].lower()
             
-            # Create PDF object
-            pdf = PDF()
-            pdf.add_page()
-            
-            if ext in ['.txt']:
-                content = file.read().decode('utf-8')
-                pdf.set_font('Arial', size=12)
-                pdf.multi_cell(0, 10, content)
-            elif ext in ['.jpg', '.jpeg', '.png']:
-                temp_img = 'temp_image' + ext
-                file.save(temp_img)
-                pdf.image(temp_img, x=10, y=10, w=190)
-                os.remove(temp_img)
-            else:
-                return 'Unsupported file type', 400
-            
-            # Save PDF in pdfs directory with a safe filename
-            original_name = os.path.splitext(file.filename)[0]
-            safe_filename = "".join(c for c in original_name if c.isalnum() or c in (' ', '-', '_')).rstrip()
-            pdf_path = os.path.join('pdfs', f"{safe_filename}.pdf")
-            pdf.output(pdf_path)
-            
-            return render_template('editor.html', pdf_name=os.path.basename(pdf_path))
+            if file:
+                filename = secure_filename(file.filename)
+                file_ext = os.path.splitext(filename)[1].lower()
+                
+                # Create pdfs directory if it doesn't exist
+                if not os.path.exists('pdfs'):
+                    os.makedirs('pdfs')
+                
+                if file_ext == '.pdf':
+                    # Save PDF directly
+                    output_path = os.path.join('pdfs', filename)
+                    file.save(output_path)
+                elif file_ext in ['.jpg', '.jpeg', '.png']:
+                    # Handle image files
+                    image = Image.open(file)
+                    if image.mode == 'RGBA':
+                        image = image.convert('RGB')
+                    output_path = os.path.join('pdfs', os.path.splitext(filename)[0] + '.pdf')
+                    image.save(output_path, 'PDF')
+                else:
+                    return 'Unsupported file type', 400
+                
+                # Get just the filename without path for the template
+                pdf_name = os.path.basename(output_path)
+                return redirect(url_for('editor', pdf_name=pdf_name))
         
         return render_template('index.html')
+
+    @app.route('/editor/<pdf_name>')
+    def editor(pdf_name):
+        return render_template('editor.html', pdf_name=pdf_name)
 
     @app.route('/pdfs/<filename>')
     def serve_pdf(filename):
         try:
             return send_file(os.path.join('pdfs', filename), mimetype='application/pdf')
         except Exception as e:
-            print(f"Error serving PDF: {e}")  # Debug log
+            print(f"Error serving PDF: {e}")
             return str(e), 404
 
     # Create necessary directories
@@ -66,7 +68,7 @@ def create_app():
         if not os.path.exists(directory):
             os.makedirs(directory)
 
-    # Create editor.html with signature pad
+    # Create editor.html with cleaner Google-inspired design
     with open('templates/editor.html', 'w') as f:
         f.write('''
 <!DOCTYPE html>
@@ -77,7 +79,6 @@ def create_app():
     <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script>
-        // Set PDF name before loading other scripts
         window.pdfName = "{{ pdf_name }}";
     </script>
     <script src="/static/PDFManager.js"></script>
@@ -86,40 +87,41 @@ def create_app():
     <script src="/static/main.js"></script>
     <style>
         body { 
-            margin: 0; 
+            margin: 0;
             padding: 20px;
-            background-color: #f5f5f5;
             font-family: Arial, sans-serif;
+            background-color: #fff;
+            color: #202124;
         }
         .toolbar {
             margin-bottom: 20px;
-            padding: 10px;
-            background-color: white;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            padding: 8px;
+            border-bottom: 1px solid #dadce0;
+            background-color: #fff;
         }
         #pdf-container {
             width: 100%;
+            max-width: 850px;
             height: 800px;
-            border: 1px solid #ccc;
-            margin-bottom: 20px;
+            margin: 0 auto;
             position: relative;
-            background-color: white;
+            background-color: #f8f9fa;
+            border: 1px solid #dadce0;
             border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
         button {
-            padding: 10px 20px;
-            background-color: #4CAF50;
+            background-color: #1a73e8;
             color: white;
             border: none;
             border-radius: 4px;
+            padding: 8px 24px;
+            font-size: 14px;
             cursor: pointer;
-            margin: 5px;
-            transition: background-color 0.3s;
+            margin: 4px;
+            transition: background-color 0.2s;
         }
         button:hover {
-            background-color: #45a049;
+            background-color: #1557b0;
         }
         .signature-container {
             display: none;
@@ -127,27 +129,25 @@ def create_app():
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            background-color: white;
-            padding: 30px;
+            background-color: #fff;
+            padding: 24px;
             border-radius: 8px;
-            box-shadow: 0 0 20px rgba(0,0,0,0.2);
+            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
             z-index: 1000;
-            border: 2px solid #4CAF50;
         }
         #signature-pad {
-            border: 1px solid #ccc;
+            border: 1px solid #dadce0;
             border-radius: 4px;
             margin: 15px 0;
-            background-color: white;
         }
         .signature-container h3 {
-            margin-top: 0;
-            color: #2c3e50;
-            text-align: center;
+            margin: 0 0 16px 0;
+            color: #202124;
+            font-size: 18px;
         }
         .signature-buttons {
-            margin-top: 20px;
-            text-align: center;
+            margin-top: 16px;
+            text-align: right;
         }
         .overlay {
             display: none;
@@ -156,29 +156,31 @@ def create_app():
             left: 0;
             right: 0;
             bottom: 0;
-            background-color: rgba(0,0,0,0.5);
+            background-color: rgba(32,33,36,0.6);
             z-index: 999;
         }
         .instructions {
-            background-color: #e8f5e9;
-            padding: 15px;
-            border-radius: 6px;
-            margin: 20px 0;
-            color: #2c3e50;
+            background-color: #f8f9fa;
+            padding: 12px 16px;
+            border-radius: 4px;
+            margin: 16px auto;
+            color: #202124;
             display: none;
+            max-width: 850px;
+            border: 1px solid #dadce0;
         }
     </style>
 </head>
 <body>
     <div class="toolbar">
-        <button onclick="window.location.href='/'">Back to Upload</button>
-        <button onclick="downloadPDF()">Download Signed PDF</button>
-        <button id="addSignatureBtn">Add Your Signature</button>
-        <button id="confirm-sig-btn" style="display:none;">Confirm Signature Position</button>
+        <button onclick="window.location.href='/'">Back</button>
+        <button onclick="downloadPDF()">Download</button>
+        <button id="addSignatureBtn">Add Signature</button>
+        <button id="confirm-sig-btn" style="display:none;">Confirm Position</button>
     </div>
     
     <div class="instructions" id="drag-instructions">
-        Click and drag to position your signature. Click "Confirm Signature Position" when ready.
+        Click and drag to position your signature. Click "Confirm Position" when ready.
     </div>
     
     <div id="pdf-container">
@@ -188,19 +190,19 @@ def create_app():
     <div class="overlay" id="overlay"></div>
     
     <div class="signature-container" id="sig-container">
-        <h3>Draw Your Signature Below</h3>
+        <h3>Draw Your Signature</h3>
         <canvas id="signature-pad" width="400" height="200"></canvas>
         <div class="signature-buttons">
-            <button onclick="clearSignature()">Clear</button>
-            <button onclick="showSignaturePreview()">Add to Document</button>
             <button onclick="closeSignaturePad()">Cancel</button>
+            <button onclick="clearSignature()">Clear</button>
+            <button onclick="showSignaturePreview()">Add</button>
         </div>
     </div>
 </body>
 </html>
         ''')
 
-    # Update index.html to remove target="_blank"
+    # Update index.html with cleaner Google-inspired design
     with open('templates/index.html', 'w') as f:
         f.write('''
 <!DOCTYPE html>
@@ -210,113 +212,131 @@ def create_app():
     <style>
         body {
             font-family: Arial, sans-serif;
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
-            background-color: #f5f5f5;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            background-color: #fff;
+            color: #202124;
         }
-        .header {
+        .main-content {
+            flex: 1;
+            max-width: 650px;
+            margin: 40px auto;
+            padding: 20px;
             text-align: center;
-            margin-bottom: 30px;
         }
         h1 {
-            color: #2c3e50;
-            margin-bottom: 10px;
+            color: #202124;
+            font-size: 24px;
+            margin-bottom: 8px;
+            font-weight: normal;
         }
         .description {
-            color: #666;
-            margin-bottom: 30px;
+            color: #5f6368;
+            margin-bottom: 32px;
+            font-size: 14px;
             line-height: 1.6;
         }
         .upload-area {
-            border: 2px dashed #4CAF50;
+            border: 2px dashed #dadce0;
             border-radius: 8px;
-            padding: 30px;
-            text-align: center;
-            margin: 20px 0;
-            background-color: white;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            padding: 32px;
+            margin: 24px 0;
+            background-color: #f8f9fa;
+            transition: border-color 0.2s;
+        }
+        .upload-area:hover {
+            border-color: #1a73e8;
         }
         .supported-files {
-            background-color: #e8f5e9;
-            padding: 15px;
-            border-radius: 6px;
-            margin: 20px 0;
+            background-color: #f8f9fa;
+            padding: 16px;
+            border-radius: 8px;
+            margin: 24px 0;
+            font-size: 14px;
+            color: #5f6368;
+            border: 1px solid #dadce0;
         }
         button {
-            padding: 12px 24px;
-            background-color: #4CAF50;
+            background-color: #1a73e8;
             color: white;
             border: none;
             border-radius: 4px;
+            padding: 8px 24px;
+            font-size: 14px;
             cursor: pointer;
-            font-size: 16px;
-            margin: 10px;
-            transition: background-color 0.3s;
+            transition: background-color 0.2s;
         }
         button:hover {
-            background-color: #45a049;
+            background-color: #1557b0;
         }
         input[type="file"] {
-            margin: 20px 0;
+            margin: 16px 0;
         }
         .features {
-            margin: 30px 0;
-            padding: 20px;
-            background-color: white;
+            text-align: left;
+            margin: 32px 0;
+            padding: 24px;
+            background-color: #f8f9fa;
             border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            border: 1px solid #dadce0;
+        }
+        .features h2 {
+            font-size: 18px;
+            color: #202124;
+            margin-top: 0;
         }
         .features ul {
             list-style-type: none;
             padding: 0;
+            margin: 0;
         }
         .features li {
-            margin: 10px 0;
+            margin: 12px 0;
             padding-left: 24px;
             position: relative;
+            color: #5f6368;
         }
         .features li:before {
             content: "✓";
-            color: #4CAF50;
+            color: #1a73e8;
             position: absolute;
             left: 0;
         }
     </style>
 </head>
 <body>
-    <div class="header">
+    <div class="main-content">
         <h1>Digital Signature Tool</h1>
         <p class="description">
-            Add your signature to documents easily. Draw, position, and save your signature on any document.
-            Perfect for contracts, forms, and other documents requiring your signature.
+            Add your signature to documents securely and easily
         </p>
-    </div>
 
-    <div class="features">
-        <h2>Features:</h2>
-        <ul>
-            <li>Draw your signature using our digital pad</li>
-            <li>Drag and position your signature anywhere on the document</li>
-            <li>Download your signed document as PDF</li>
-            <li>Support for multiple file formats</li>
-            <li>Easy to use interface</li>
-        </ul>
-    </div>
+        <form method="POST" enctype="multipart/form-data">
+            <div class="upload-area">
+                <input type="file" name="file" accept=".jpg,.jpeg,.png,.pdf">
+                <br>
+                <button type="submit">Upload Document</button>
+            </div>
+        </form>
 
-    <div class="supported-files">
-        <h3>Supported File Types:</h3>
-        <p>Upload any of these files to add your signature: PDF, Images (.jpg, .jpeg, .png), or Text files (.txt)</p>
-    </div>
-
-    <form method="POST" enctype="multipart/form-data">
-        <div class="upload-area">
-            <h3>Upload Your Document</h3>
-            <input type="file" name="file" accept=".txt,.jpg,.jpeg,.png,.pdf">
-            <br>
-            <button type="submit">Upload and Add Signature</button>
+        <div class="supported-files">
+            Supported formats: PDF, JPG, JPEG, PNG
         </div>
-    </form>
+
+        <div class="features">
+            <h2>Features</h2>
+            <ul>
+                <li>Draw your signature digitally</li>
+                <li>Position signature anywhere on document</li>
+                <li>Instant PDF download</li>
+                <li>Support for images and PDFs</li>
+                <li>Simple and secure</li>
+            </ul>
+        </div>
+    </div>
 </body>
 </html>
         ''')

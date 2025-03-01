@@ -6,113 +6,131 @@
     <style>
         body {
             font-family: Arial, sans-serif;
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
-            background-color: #f5f5f5;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            background-color: #fff;
+            color: #202124;
         }
-        .header {
+        .main-content {
+            flex: 1;
+            max-width: 650px;
+            margin: 40px auto;
+            padding: 20px;
             text-align: center;
-            margin-bottom: 30px;
         }
         h1 {
-            color: #2c3e50;
-            margin-bottom: 10px;
+            color: #202124;
+            font-size: 24px;
+            margin-bottom: 8px;
+            font-weight: normal;
         }
         .description {
-            color: #666;
-            margin-bottom: 30px;
+            color: #5f6368;
+            margin-bottom: 32px;
+            font-size: 14px;
             line-height: 1.6;
         }
         .upload-area {
-            border: 2px dashed #4CAF50;
+            border: 2px dashed #dadce0;
             border-radius: 8px;
-            padding: 30px;
-            text-align: center;
-            margin: 20px 0;
-            background-color: white;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            padding: 32px;
+            margin: 24px 0;
+            background-color: #f8f9fa;
+            transition: border-color 0.2s;
+        }
+        .upload-area:hover {
+            border-color: #1a73e8;
         }
         .supported-files {
-            background-color: #e8f5e9;
-            padding: 15px;
-            border-radius: 6px;
-            margin: 20px 0;
+            background-color: #f8f9fa;
+            padding: 16px;
+            border-radius: 8px;
+            margin: 24px 0;
+            font-size: 14px;
+            color: #5f6368;
+            border: 1px solid #dadce0;
         }
         button {
-            padding: 12px 24px;
-            background-color: #4CAF50;
+            background-color: #1a73e8;
             color: white;
             border: none;
             border-radius: 4px;
+            padding: 8px 24px;
+            font-size: 14px;
             cursor: pointer;
-            font-size: 16px;
-            margin: 10px;
-            transition: background-color 0.3s;
+            transition: background-color 0.2s;
         }
         button:hover {
-            background-color: #45a049;
+            background-color: #1557b0;
         }
         input[type="file"] {
-            margin: 20px 0;
+            margin: 16px 0;
         }
         .features {
-            margin: 30px 0;
-            padding: 20px;
-            background-color: white;
+            text-align: left;
+            margin: 32px 0;
+            padding: 24px;
+            background-color: #f8f9fa;
             border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            border: 1px solid #dadce0;
+        }
+        .features h2 {
+            font-size: 18px;
+            color: #202124;
+            margin-top: 0;
         }
         .features ul {
             list-style-type: none;
             padding: 0;
+            margin: 0;
         }
         .features li {
-            margin: 10px 0;
+            margin: 12px 0;
             padding-left: 24px;
             position: relative;
+            color: #5f6368;
         }
         .features li:before {
             content: "✓";
-            color: #4CAF50;
+            color: #1a73e8;
             position: absolute;
             left: 0;
         }
     </style>
 </head>
 <body>
-    <div class="header">
+    <div class="main-content">
         <h1>Digital Signature Tool</h1>
         <p class="description">
-            Add your signature to documents easily. Draw, position, and save your signature on any document.
-            Perfect for contracts, forms, and other documents requiring your signature.
+            Add your signature to documents securely and easily
         </p>
-    </div>
 
-    <div class="features">
-        <h2>Features:</h2>
-        <ul>
-            <li>Draw your signature using our digital pad</li>
-            <li>Drag and position your signature anywhere on the document</li>
-            <li>Download your signed document as PDF</li>
-            <li>Support for multiple file formats</li>
-            <li>Easy to use interface</li>
-        </ul>
-    </div>
+        <form method="POST" enctype="multipart/form-data">
+            <div class="upload-area">
+                <input type="file" name="file" accept=".jpg,.jpeg,.png,.pdf">
+                <br>
+                <button type="submit">Upload Document</button>
+            </div>
+        </form>
 
-    <div class="supported-files">
-        <h3>Supported File Types:</h3>
-        <p>Upload any of these files to add your signature: PDF, Images (.jpg, .jpeg, .png), or Text files (.txt)</p>
-    </div>
-
-    <form method="POST" enctype="multipart/form-data">
-        <div class="upload-area">
-            <h3>Upload Your Document</h3>
-            <input type="file" name="file" accept=".txt,.jpg,.jpeg,.png,.pdf">
-            <br>
-            <button type="submit">Upload and Add Signature</button>
+        <div class="supported-files">
+            Supported formats: PDF, JPG, JPEG, PNG
         </div>
-    </form>
+
+        <div class="features">
+            <h2>Features</h2>
+            <ul>
+                <li>Draw your signature digitally</li>
+                <li>Position signature anywhere on document</li>
+                <li>Instant PDF download</li>
+                <li>Support for images and PDFs</li>
+                <li>Simple and secure</li>
+            </ul>
+        </div>
+    </div>
 </body>
 </html>
         

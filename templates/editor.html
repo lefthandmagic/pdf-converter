@@ -7,7 +7,6 @@
     <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script>
-        // Set PDF name before loading other scripts
         window.pdfName = "{{ pdf_name }}";
     </script>
     <script src="/static/PDFManager.js"></script>
@@ -16,40 +15,41 @@
     <script src="/static/main.js"></script>
     <style>
         body { 
-            margin: 0; 
+            margin: 0;
             padding: 20px;
-            background-color: #f5f5f5;
             font-family: Arial, sans-serif;
+            background-color: #fff;
+            color: #202124;
         }
         .toolbar {
             margin-bottom: 20px;
-            padding: 10px;
-            background-color: white;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            padding: 8px;
+            border-bottom: 1px solid #dadce0;
+            background-color: #fff;
         }
         #pdf-container {
             width: 100%;
+            max-width: 850px;
             height: 800px;
-            border: 1px solid #ccc;
-            margin-bottom: 20px;
+            margin: 0 auto;
             position: relative;
-            background-color: white;
+            background-color: #f8f9fa;
+            border: 1px solid #dadce0;
             border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
         button {
-            padding: 10px 20px;
-            background-color: #4CAF50;
+            background-color: #1a73e8;
             color: white;
             border: none;
             border-radius: 4px;
+            padding: 8px 24px;
+            font-size: 14px;
             cursor: pointer;
-            margin: 5px;
-            transition: background-color 0.3s;
+            margin: 4px;
+            transition: background-color 0.2s;
         }
         button:hover {
-            background-color: #45a049;
+            background-color: #1557b0;
         }
         .signature-container {
             display: none;
@@ -57,27 +57,25 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            background-color: white;
-            padding: 30px;
+            background-color: #fff;
+            padding: 24px;
             border-radius: 8px;
-            box-shadow: 0 0 20px rgba(0,0,0,0.2);
+            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
             z-index: 1000;
-            border: 2px solid #4CAF50;
         }
         #signature-pad {
-            border: 1px solid #ccc;
+            border: 1px solid #dadce0;
             border-radius: 4px;
             margin: 15px 0;
-            background-color: white;
         }
         .signature-container h3 {
-            margin-top: 0;
-            color: #2c3e50;
-            text-align: center;
+            margin: 0 0 16px 0;
+            color: #202124;
+            font-size: 18px;
         }
         .signature-buttons {
-            margin-top: 20px;
-            text-align: center;
+            margin-top: 16px;
+            text-align: right;
         }
         .overlay {
             display: none;
@@ -86,29 +84,31 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background-color: rgba(0,0,0,0.5);
+            background-color: rgba(32,33,36,0.6);
             z-index: 999;
         }
         .instructions {
-            background-color: #e8f5e9;
-            padding: 15px;
-            border-radius: 6px;
-            margin: 20px 0;
-            color: #2c3e50;
+            background-color: #f8f9fa;
+            padding: 12px 16px;
+            border-radius: 4px;
+            margin: 16px auto;
+            color: #202124;
             display: none;
+            max-width: 850px;
+            border: 1px solid #dadce0;
         }
     </style>
 </head>
 <body>
     <div class="toolbar">
-        <button onclick="window.location.href='/'">Back to Upload</button>
-        <button onclick="downloadPDF()">Download Signed PDF</button>
-        <button id="addSignatureBtn">Add Your Signature</button>
-        <button id="confirm-sig-btn" style="display:none;">Confirm Signature Position</button>
+        <button onclick="window.location.href='/'">Back</button>
+        <button onclick="downloadPDF()">Download</button>
+        <button id="addSignatureBtn">Add Signature</button>
+        <button id="confirm-sig-btn" style="display:none;">Confirm Position</button>
     </div>
     
     <div class="instructions" id="drag-instructions">
-        Click and drag to position your signature. Click "Confirm Signature Position" when ready.
+        Click and drag to position your signature. Click "Confirm Position" when ready.
     </div>
     
     <div id="pdf-container">
@@ -118,12 +118,12 @@
     <div class="overlay" id="overlay"></div>
     
     <div class="signature-container" id="sig-container">
-        <h3>Draw Your Signature Below</h3>
+        <h3>Draw Your Signature</h3>
         <canvas id="signature-pad" width="400" height="200"></canvas>
         <div class="signature-buttons">
-            <button onclick="clearSignature()">Clear</button>
-            <button onclick="showSignaturePreview()">Add to Document</button>
             <button onclick="closeSignaturePad()">Cancel</button>
+            <button onclick="clearSignature()">Clear</button>
+            <button onclick="showSignaturePreview()">Add</button>
         </div>
     </div>
 </body>
